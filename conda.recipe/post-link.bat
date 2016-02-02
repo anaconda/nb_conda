@@ -2,4 +2,6 @@
 
 dir "%PREFIX%\Scripts"
 
+dir "%PREFIX%"
+
 "%PREFIX%\python.exe" -c "import sys; print(sys.executable)"

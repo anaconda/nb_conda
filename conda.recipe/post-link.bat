@@ -1,1 +1,1 @@
-"%PREFIX%\Scripts\python" -m nb_conda.setup install --enable --prefix="%PREFIX%"
+"%PREFIX%\Scripts\python.exe" -m nb_conda.setup install --enable --prefix="%PREFIX%"

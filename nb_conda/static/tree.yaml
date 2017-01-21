@@ -1,0 +1,14 @@
+# This file declares this nbextension to the jupyter_nbextensions_configurator.
+# See
+#     https://github.com/Jupyter-contrib/jupyter_nbextensions_configurator
+# for further details.
+Type: Jupyter Notebook Extension
+Name: Conda tab
+Description: |
+  Adds a Conda tab to the Jupyter file browser which can list the currently
+  existing Conda environments, and packages installed in the selected
+  environment. In addition, you can install new packages and update installed
+  packages form the tab.
+Main: tree.js
+Compatibility: 4.x
+Link: https://github.com/Anaconda-Platform/nb_conda

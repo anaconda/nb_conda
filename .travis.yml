@@ -21,7 +21,7 @@ install:
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     fi
   - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
+  - . "$HOME/miniconda/etc/profile.d/conda.sh"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update --yes --quiet conda
@@ -29,7 +29,7 @@ install:
   - conda info -a
   - conda create -n nb_conda python=$TRAVIS_PYTHON_VERSION
   - conda install -n nb_conda -c conda-forge --file requirements.txt
-  - source activate nb_conda
+  - conda activate nb_conda
   - pip install python-coveralls
   - npm install
 

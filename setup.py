@@ -1,15 +1,10 @@
 import setuptools
-from os.path import join
-
-# should be loaded below
-__version__ = None
-
-with open(join('nb_conda', '_version.py')) as version:
-    exec(version.read())
+import versioneer
 
 setuptools.setup(
     name="nb_conda",
-    version=__version__,
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     url="https://github.com/Anaconda-Platform/nb_conda",
     author="Continuum Analytics",
     description="Manage your conda environments from the Jupyter Notebook",

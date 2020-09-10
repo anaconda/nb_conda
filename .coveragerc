@@ -1,0 +1,4 @@
+[run]
+source=nb_conda
+omit =
+    nb_conda/_version.py

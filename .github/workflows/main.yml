@@ -1,0 +1,73 @@
+name: Build and test the package
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - master
+defaults:
+  run:
+    shell: bash
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest,ubuntu-latest,windows-latest]
+        pyver: [2.7,3.6,3.7,3.8]
+    steps:
+    - name: Retrieve the source code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Build the build environment
+      run: |
+          [ $RUNNER_OS = 'Windows' ] && CONDA_EXE=$CONDA/Scripts/conda.exe
+          [ $RUNNER_OS == macOS ] && export CONDA_PKGS_DIRS=~/.pkgs
+          ${CONDA_EXE:-conda} create -p ../conda conda conda-build conda-verify
+    - name: Build and test the package
+      run: |
+        source ../conda/etc/profile.d/conda.sh
+        [ "$RUNNER_OS" == "Windows" ] && export PYTHONIOENCODING=UTF-8
+        conda build conda-recipe --python=${{ matrix.pyver }} | tee build.log
+        # Because Windows refuses to preserve the error code
+        if grep ' FAILED ' build.log; then exit -1; fi
+        mv ../conda/conda-bld .
+    - name: Upload the build artifact
+      if: github.event_name == 'push'
+      uses: actions/upload-artifact@v2
+      with:
+        # By uploading to the same artifact we can download all of the packages
+        # and upload them all to anaconda.org in a single job
+        name: package-${{ github.sha }}
+        path: conda-bld/*/*.tar.bz2
+  upload:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+    - name: Retrieve the source code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Download the build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: package-${{ github.sha }}
+        path: conda-bld
+    - name: Upload to anaconda.org
+      env:
+        ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+      run: |
+        conda create -p ../conda conda anaconda-client git
+        source ../conda/bin/activate
+        git tag describe --exact-match --tags HEAD || export LABEL="--label dev"
+        anaconda --verbose --token $ANACONDA_TOKEN upload --user jupycon $LABEL conda-bld/*/*.tar.bz2 --force
+    - name: Clean up older artifacts
+      uses: glassechidna/artifact-cleaner@master
+      with:
+        minimumAge: 86400

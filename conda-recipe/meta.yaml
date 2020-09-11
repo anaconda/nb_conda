@@ -1,0 +1,60 @@
+{% set data = load_setup_py_data() %}
+
+package:
+  name: nb_conda
+  version: {{ data.get('version') }}
+
+source:
+  path: ../
+
+build:
+  number: 0
+  script:
+    - {{ PYTHON }} -m pip install --no-deps --ignore-installed .
+    - jupyter nbextension install nb_conda --py --sys-prefix --overwrite
+
+requirements:
+  host:
+    - python
+    - setuptools
+    - pip
+    - backports.functools_lru_cache # [py2k and win]
+    - notebook >=4.3.1
+
+  run:
+    - python
+    - notebook >=4.3.1
+    - backports.functools_lru_cache # [py2k and win]
+    - nb_conda_kernels >=2.0.0
+
+test:
+  source_files:
+    - setup.cfg
+    - .coveragerc
+    - package.json
+    - tests
+  requires:
+    - nodejs
+    - pytest
+    - pytest-cov
+    - notebook
+    - requests
+    - mock
+  commands:
+    - npm install
+    - npm run test
+
+about:
+  home: https://github.com/Anaconda-Platform/nb_conda
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE
+  summary: Conda environment and package access extension from within Jupyter
+
+extra:
+  recipe-maintainers:
+    - mcg1969
+    - bollwyvl
+    - damianavila
+    - fjcapdevila
+    - xylar

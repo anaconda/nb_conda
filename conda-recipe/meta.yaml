@@ -18,11 +18,13 @@ requirements:
     - python
     - setuptools
     - pip
+    - backports.functools_lru_cache # [py2k and win]
     - notebook >=4.3.1
 
   run:
     - python
     - notebook >=4.3.1
+    - backports.functools_lru_cache # [py2k and win]
     - nb_conda_kernels >=2.0.0
 
 test:

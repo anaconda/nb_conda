@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest,ubuntu-latest,windows-latest]
-        pyver: [2.7,3.6,3.7,3.8]
+        pyver: [3.8, 3.9, "3.10", "3.11", "3.12"]
     steps:
     - name: Retrieve the source code
       uses: actions/checkout@v2
@@ -39,7 +39,7 @@ jobs:
         mv ../conda/conda-bld .
     - name: Upload the build artifact
       if: github.event_name == 'push'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         # By uploading to the same artifact we can download all of the packages
         # and upload them all to anaconda.org in a single job

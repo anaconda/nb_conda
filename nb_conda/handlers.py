@@ -6,20 +6,16 @@
 
 # Tornado get and post handlers often have different args from their base class
 # methods.
-
 import json
 import os
 import re
-
+import subprocess
 from subprocess import Popen
 from tempfile import TemporaryFile
 
-from pkg_resources import parse_version
+from notebook.base.handlers import APIHandler, json_errors
 from notebook.utils import url_path_join as ujoin
-from notebook.base.handlers import (
-    APIHandler,
-    json_errors,
-)
+from packaging.version import InvalidVersion, Version
 from tornado import web
 
 from .envmanager import EnvManager, package_map
@@ -155,6 +151,22 @@ class CondaSearcher(object):
         self.conda_process = None
         self.conda_temp = None
 
+    def _parse_version(self, version_str):
+        """Handle R-style and year-based versions"""
+        # Convert R package versions like "1.8_4" to "1.8.4"
+        version_str = version_str.replace('_', '.')
+
+        # Handle year-based versions like "2023d" -> "2023.4"
+        if re.match(r'^\d{4}[a-z]$', version_str):
+            letter = version_str[-1]
+            number = ord(letter) - ord('a') + 1
+            version_str = f"{version_str[:-1]}.{number}"
+
+        try:
+            return Version(version_str)
+        except InvalidVersion:
+            return None
+
     def list_available(self, handler=None):
         """
         List the available conda packages by kicking off a background
@@ -164,7 +176,7 @@ class CondaSearcher(object):
         will be returned (this will be a dict containing error information).
         TODO - break up this method.
         """
-        self.log = handler.log
+        self.log = handler.log if handler else None
 
         if self.conda_process is not None:
             # already running, check for completion
@@ -194,13 +206,13 @@ class CondaSearcher(object):
                     max_version_entry = None
 
                     for entry in entries:
-                        version = parse_version(entry.get('version', ''))
-
-                        if max_version is None or version > max_version:
+                        version = self._parse_version(entry.get('version', ''))
+                        if version is not None and (max_version is None or version > max_version):
                             max_version = version
                             max_version_entry = entry
 
-                    packages.append(max_version_entry)
+                    if max_version_entry:
+                        packages.append(max_version_entry)
 
                 return sorted(packages, key=lambda entry: entry.get('name'))
 
